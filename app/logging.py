@@ -1,5 +1,6 @@
-import logging
 import os
+import logging
+
 from logging.handlers import RotatingFileHandler
 from datetime import datetime
 
@@ -60,17 +61,6 @@ def setup_logging(log_level: str = "INFO", log_to_file: bool = True, log_dir: st
         error_handler.setLevel(logging.ERROR)
         error_handler.setFormatter(log_format)
         root_logger.addHandler(error_handler)
-        
-        # Дневной лог (новый файл каждый день)
-        today = datetime.now().strftime("%Y-%m-%d")
-        daily_log_file = os.path.join(log_dir, f"bot_{today}.log")
-        daily_handler = logging.FileHandler(
-            daily_log_file,
-            encoding='utf-8'
-        )
-        daily_handler.setLevel(logging.DEBUG)
-        daily_handler.setFormatter(log_format)
-        root_logger.addHandler(daily_handler)
     
     # Настройка логирования для сторонних библиотек
     logging.getLogger('aiogram').setLevel(logging.WARNING)
@@ -84,64 +74,3 @@ def setup_logging(log_level: str = "INFO", log_to_file: bool = True, log_dir: st
         logging.info(f"Директория логов: {log_dir}")
     logging.info("=" * 50)
 
-
-# Конфигурация API
-class Config:
-    """Класс для хранения конфигурации приложения"""
-    
-    def __init__(self):
-        from dotenv import load_dotenv
-        load_dotenv()
-        
-        # Telegram Bot
-        self.BOT_TOKEN = os.getenv("BOT_TOKEN")
-        
-        # API endpoints
-        self.API_BASE_URL = os.getenv("API_BASE_URL")
-        self.LOGIN_ENDPOINT = os.getenv("LOGIN_ENDPOINT")
-        self.EXPORT_EXCEL_ENDPOINT = os.getenv("EXPORT_EXCEL_ENDPOINT")
-        self.UPLOAD_ENDPOINT = os.getenv("UPLOAD_ENDPOINT")
-        
-        # Настройки логирования
-        self.LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
-        self.LOG_TO_FILE = os.getenv("LOG_TO_FILE", "true").lower() == "true"
-        self.LOG_DIR = os.getenv("LOG_DIR", "logs")
-        
-        # Валидация обязательных параметров
-        self._validate()
-    
-    def _validate(self):
-        """Проверка наличия обязательных параметров"""
-        required_params = {
-            "BOT_TOKEN": self.BOT_TOKEN,
-            "API_BASE_URL": self.API_BASE_URL,
-            "LOGIN_ENDPOINT": self.LOGIN_ENDPOINT,
-            "EXPORT_EXCEL_ENDPOINT": self.EXPORT_EXCEL_ENDPOINT,
-            "UPLOAD_ENDPOINT": self.UPLOAD_ENDPOINT,
-        }
-        
-        missing = [key for key, value in required_params.items() if not value]
-        
-        if missing:
-            raise ValueError(
-                f"Отсутствуют обязательные переменные окружения: {', '.join(missing)}\n"
-                "Проверьте файл .env"
-            )
-    
-    def setup_logging(self):
-        """Инициализация логирования"""
-        setup_logging(
-            log_level=self.LOG_LEVEL,
-            log_to_file=self.LOG_TO_FILE,
-            log_dir=self.LOG_DIR
-        )
-
-
-# Создаем глобальный экземпляр конфигурации
-try:
-    config = Config()
-except ValueError as e:
-    # Если не удалось загрузить конфигурацию, выводим ошибку и выходим
-    print(f"❌ Ошибка конфигурации: {e}")
-    import sys
-    sys.exit(1)
