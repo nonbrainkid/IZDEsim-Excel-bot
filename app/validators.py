@@ -1,36 +1,11 @@
-from typing import Optional, Dict, Any
 import logging
 
+from typing import Optional, Dict, Any
+
+from app.exceptions import AuthenticationError, ValidationError, ServerError, NetworkError,APIError
+
+
 logger = logging.getLogger(__name__)
-
-
-class APIError(Exception):
-    """Базовое исключение для ошибок API"""
-    def __init__(self, message: str, status_code: Optional[int] = None):
-        self.message = message
-        self.status_code = status_code
-        super().__init__(self.message)
-
-
-class AuthenticationError(APIError):
-    """Ошибка авторизации"""
-    pass
-
-
-class ValidationError(APIError):
-    """Ошибка валидации данных"""
-    pass
-
-
-class NetworkError(APIError):
-    """Ошибка сети"""
-    pass
-
-
-class ServerError(APIError):
-    """Ошибка сервера"""
-    pass
-
 
 def validate_login_response(status: int, data: Dict[str, Any]) -> str:
     """
@@ -61,13 +36,15 @@ def validate_login_response(status: int, data: Dict[str, Any]) -> str:
         raise APIError(f"Неожиданный статус: {status}", status_code=status)
     
     # Ищем токен в разных возможных полях
-    token = (
-        data["data"]["access"]
-    )
+    token = data["data"].get("access")
     
     if not token:
         logger.error(f"Token not found in response: {data}")
         raise ValidationError("Токен не найден в ответе сервера")
+    
+    if not isinstance(token, str):
+        logger.error(f"Token is not a string: {token}")
+        raise ValidationError("Токен не является строкой")
     
     return token
 
