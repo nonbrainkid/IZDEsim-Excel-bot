@@ -16,3 +16,7 @@ __pycache__
 .DS_store
 *.log
 *.pyc
+
+.claude/
+CLAUDE.md
+docs_claude/

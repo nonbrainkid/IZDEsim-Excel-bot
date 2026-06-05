@@ -72,7 +72,9 @@ class APIService:
             )
             
             APIService._cached_token = token
-            APIService._token_expires_at = now + timedelta(minutes=10)
+            # TTL access-токена на бэкенде = 10 мин. Кэшируем на 8, чтобы не ловить
+            # 401 на самой границе срока (подтверждено контрактом IzdeSim, Session 003).
+            APIService._token_expires_at = now + timedelta(minutes=8)
             
             logger.info(f"Backend authentication successful, token cached until {APIService._token_expires_at}")
             
